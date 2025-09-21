@@ -2,47 +2,106 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        //
+        $products = Product::with('category')->get();
+        return response()->json($products);
     }
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'category_id' => 'nullable|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:255|unique:products',
+            'barcode' => 'nullable|string|max:255|unique:products',
+            'description' => 'nullable|string',
+            'cost_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0',
+            'quantity' => 'required|numeric|min:0',
+            'reorder_threshold' => 'required|numeric|min:0',
+            'track_expiry' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $product = Product::create($request->all());
+        return response()->json($product, 201);
     }
 
     /**
      * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $product = Product::with('category')->findOrFail($id);
+        return response()->json($product);
     }
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $product = Product::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'category_id' => 'nullable|exists:categories,id',
+            'name' => 'sometimes|required|string|max:255',
+            'sku' => 'nullable|string|max:255|unique:products,sku,' . $id,
+            'barcode' => 'nullable|string|max:255|unique:products,barcode,' . $id,
+            'description' => 'nullable|string',
+            'cost_price' => 'sometimes|required|numeric|min:0',
+            'selling_price' => 'sometimes|required|numeric|min:0',
+            'quantity' => 'sometimes|required|numeric|min:0',
+            'reorder_threshold' => 'sometimes|required|numeric|min:0',
+            'track_expiry' => 'sometimes|required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $product->update($request->all());
+        return response()->json($product);
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $product = Product::findOrFail($id);
+        $product->delete();
+        return response()->json(null, 204);
     }
 }
