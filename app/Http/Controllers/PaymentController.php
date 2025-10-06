@@ -37,11 +37,15 @@ class PaymentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $payment = Payment::create($request->all());
-        return response()->json($payment, 201);
+        try {
+            $payment = Payment::create($request->all());
+            return response()->json(['message' => 'Payment created successfully', 'data' => $payment], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create payment', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -77,11 +81,15 @@ class PaymentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $payment->update($request->all());
-        return response()->json($payment);
+        try {
+            $payment->update($request->all());
+            return response()->json(['message' => 'Payment updated successfully', 'data' => $payment]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update payment', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -93,7 +101,12 @@ class PaymentController extends Controller
     public function destroy($id)
     {
         $payment = Payment::findOrFail($id);
-        $payment->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $payment->delete();
+            return response()->json(['message' => 'Payment deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete payment', 'error' => $e->getMessage()], 500);
+        }
     }
 }
