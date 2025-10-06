@@ -36,11 +36,15 @@ class InventoryAdjustmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $adjustment = InventoryAdjustment::create($request->all());
-        return response()->json($adjustment, 201);
+        try {
+            $adjustment = InventoryAdjustment::create($request->all());
+            return response()->json(['message' => 'Inventory adjustment created successfully', 'data' => $adjustment], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create inventory adjustment', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -75,11 +79,15 @@ class InventoryAdjustmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $adjustment->update($request->all());
-        return response()->json($adjustment);
+        try {
+            $adjustment->update($request->all());
+            return response()->json(['message' => 'Inventory adjustment updated successfully', 'data' => $adjustment]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update inventory adjustment', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -91,7 +99,12 @@ class InventoryAdjustmentController extends Controller
     public function destroy($id)
     {
         $adjustment = InventoryAdjustment::findOrFail($id);
-        $adjustment->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $adjustment->delete();
+            return response()->json(['message' => 'Inventory adjustment deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete inventory adjustment', 'error' => $e->getMessage()], 500);
+        }
     }
 }
