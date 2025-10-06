@@ -36,17 +36,21 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+            ]);
 
-        return response()->json($user, 201);
+            return response()->json(['message' => 'User created successfully', 'data' => $user], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create user', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -80,17 +84,21 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $userData = $request->only(['name', 'email', 'role']);
-        
-        if ($request->has('password')) {
-            $userData['password'] = Hash::make($request->password);
-        }
+        try {
+            $userData = $request->only(['name', 'email', 'role']);
+            
+            if ($request->has('password')) {
+                $userData['password'] = Hash::make($request->password);
+            }
 
-        $user->update($userData);
-        return response()->json($user);
+            $user->update($userData);
+            return response()->json(['message' => 'User updated successfully', 'data' => $user]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update user', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -102,7 +110,12 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $user->delete();
+            return response()->json(['message' => 'User deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete user', 'error' => $e->getMessage()], 500);
+        }
     }
 }
