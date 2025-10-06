@@ -37,11 +37,15 @@ class CustomerController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $customer = Customer::create($request->all());
-        return response()->json($customer, 201);
+        try {
+            $customer = Customer::create($request->all());
+            return response()->json(['message' => 'Customer created successfully', 'data' => $customer], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create customer', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -77,11 +81,15 @@ class CustomerController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $customer->update($request->all());
-        return response()->json($customer);
+        try {
+            $customer->update($request->all());
+            return response()->json(['message' => 'Customer updated successfully', 'data' => $customer]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update customer', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -93,7 +101,12 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         $customer = Customer::findOrFail($id);
-        $customer->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $customer->delete();
+            return response()->json(['message' => 'Customer deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete customer', 'error' => $e->getMessage()], 500);
+        }
     }
 }
