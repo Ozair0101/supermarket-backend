@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('purchases', function (Blueprint $table) {
             $table->unsignedBigInteger('supplier_id');
-            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->string('invoice_number');
             $table->decimal('sub_total', 10, 2)->default(0);
             $table->decimal('discount', 10, 2)->default(0);
