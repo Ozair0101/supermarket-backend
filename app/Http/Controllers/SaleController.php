@@ -53,28 +53,32 @@ class SaleController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        return DB::transaction(function () use ($request) {
-            $sale = Sale::create($request->except('items'));
-            
-            foreach ($request->items as $item) {
-                $sale->items()->create($item);
+        try {
+            return DB::transaction(function () use ($request) {
+                $sale = Sale::create($request->except('items'));
                 
-                // Update product quantity
-                $product = \App\Models\Product::find($item['product_id']);
-                $product->decrement('quantity', $item['quantity']);
-            }
-            
-            // Update customer balance if credit sale
-            if ($request->customer_id && $request->status === 'credit') {
-                $customer = \App\Models\Customer::find($request->customer_id);
-                $customer->increment('remaining_balance', $request->remaining);
-            }
-            
-            return response()->json($sale->load(['customer', 'createdBy', 'items.product']), 201);
-        });
+                foreach ($request->items as $item) {
+                    $sale->items()->create($item);
+                    
+                    // Update product quantity
+                    $product = \App\Models\Product::find($item['product_id']);
+                    $product->decrement('quantity', $item['quantity']);
+                }
+                
+                // Update customer balance if credit sale
+                if ($request->customer_id && $request->status === 'credit') {
+                    $customer = \App\Models\Customer::find($request->customer_id);
+                    $customer->increment('remaining_balance', $request->remaining);
+                }
+                
+                return response()->json(['message' => 'Sale created successfully', 'data' => $sale->load(['customer', 'createdBy', 'items.product'])], 201);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create sale', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -117,11 +121,15 @@ class SaleController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $sale->update($request->except('items'));
-        return response()->json($sale->load(['customer', 'createdBy', 'items.product']));
+        try {
+            $sale->update($request->except('items'));
+            return response()->json(['message' => 'Sale updated successfully', 'data' => $sale->load(['customer', 'createdBy', 'items.product'])]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update sale', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -133,7 +141,12 @@ class SaleController extends Controller
     public function destroy($id)
     {
         $sale = Sale::findOrFail($id);
-        $sale->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $sale->delete();
+            return response()->json(['message' => 'Sale deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete sale', 'error' => $e->getMessage()], 500);
+        }
     }
 }
