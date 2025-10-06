@@ -34,11 +34,15 @@ class CategoryController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $category = Category::create($request->all());
-        return response()->json($category, 201);
+        try {
+            $category = Category::create($request->all());
+            return response()->json(['message' => 'Category created successfully', 'data' => $category], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create category', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -71,11 +75,15 @@ class CategoryController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $category->update($request->all());
-        return response()->json($category);
+        try {
+            $category->update($request->all());
+            return response()->json(['message' => 'Category updated successfully', 'data' => $category]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update category', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -87,7 +95,12 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
-        $category->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $category->delete();
+            return response()->json(['message' => 'Category deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete category', 'error' => $e->getMessage()], 500);
+        }
     }
 }
