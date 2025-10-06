@@ -34,11 +34,15 @@ class SettingController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $setting = Setting::create($request->all());
-        return response()->json($setting, 201);
+        try {
+            $setting = Setting::create($request->all());
+            return response()->json(['message' => 'Setting created successfully', 'data' => $setting], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create setting', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -71,11 +75,15 @@ class SettingController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $setting->update($request->all());
-        return response()->json($setting);
+        try {
+            $setting->update($request->all());
+            return response()->json(['message' => 'Setting updated successfully', 'data' => $setting]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update setting', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -87,7 +95,12 @@ class SettingController extends Controller
     public function destroy($id)
     {
         $setting = Setting::findOrFail($id);
-        $setting->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $setting->delete();
+            return response()->json(['message' => 'Setting deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete setting', 'error' => $e->getMessage()], 500);
+        }
     }
 }
