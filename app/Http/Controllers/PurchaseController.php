@@ -52,26 +52,30 @@ class PurchaseController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        return DB::transaction(function () use ($request) {
-            $purchase = Purchase::create($request->except('items'));
-            
-            foreach ($request->items as $item) {
-                $purchase->items()->create($item);
+        try {
+            return DB::transaction(function () use ($request) {
+                $purchase = Purchase::create($request->except('items'));
                 
-                // Update product quantity
-                $product = \App\Models\Product::find($item['product_id']);
-                $product->increment('quantity', $item['quantity']);
-            }
-            
-            // Update supplier balance
-            $supplier = \App\Models\Supplier::find($request->supplier_id);
-            $supplier->increment('remaining_balance', $request->remaining);
-            
-            return response()->json($purchase->load(['supplier', 'createdBy', 'items.product']), 201);
-        });
+                foreach ($request->items as $item) {
+                    $purchase->items()->create($item);
+                    
+                    // Update product quantity
+                    $product = \App\Models\Product::find($item['product_id']);
+                    $product->increment('quantity', $item['quantity']);
+                }
+                
+                // Update supplier balance
+                $supplier = \App\Models\Supplier::find($request->supplier_id);
+                $supplier->increment('remaining_balance', $request->remaining);
+                
+                return response()->json(['message' => 'Purchase created successfully', 'data' => $purchase->load(['supplier', 'createdBy', 'items.product'])], 201);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create purchase', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -113,11 +117,15 @@ class PurchaseController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $purchase->update($request->except('items'));
-        return response()->json($purchase->load(['supplier', 'createdBy', 'items.product']));
+        try {
+            $purchase->update($request->except('items'));
+            return response()->json(['message' => 'Purchase updated successfully', 'data' => $purchase->load(['supplier', 'createdBy', 'items.product'])]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update purchase', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -129,7 +137,12 @@ class PurchaseController extends Controller
     public function destroy($id)
     {
         $purchase = Purchase::findOrFail($id);
-        $purchase->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $purchase->delete();
+            return response()->json(['message' => 'Purchase deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete purchase', 'error' => $e->getMessage()], 500);
+        }
     }
 }
