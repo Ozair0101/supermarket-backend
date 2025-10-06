@@ -41,11 +41,15 @@ class ProductController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $product = Product::create($request->all());
-        return response()->json($product, 201);
+        try {
+            $product = Product::create($request->all());
+            return response()->json(['message' => 'Product created successfully', 'data' => $product], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create product', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -85,11 +89,15 @@ class ProductController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $product->update($request->all());
-        return response()->json($product);
+        try {
+            $product->update($request->all());
+            return response()->json(['message' => 'Product updated successfully', 'data' => $product]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update product', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -101,7 +109,12 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        $product->delete();
-        return response()->json(null, 204);
+        
+        try {
+            $product->delete();
+            return response()->json(['message' => 'Product deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete product', 'error' => $e->getMessage()], 500);
+        }
     }
 }
