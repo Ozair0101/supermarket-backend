@@ -13,9 +13,20 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->get();
+        $query = Product::with('category');
+        
+        // Filter by has_inventory if specified
+        if ($request->has('has_inventory') && $request->has_inventory) {
+            // Instead of checking product quantity directly, we check if the product
+            // has been purchased with quantity > 0 in any purchase item
+            $query->whereHas('purchaseItems', function ($subQuery) {
+                $subQuery->where('quantity', '>', 0);
+            });
+        }
+        
+        $products = $query->get();
         return response()->json($products);
     }
 
