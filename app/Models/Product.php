@@ -22,11 +22,7 @@ class Product extends Model
         'branch_id',
         'name',
         'sku',
-        'barcode',
         'description',
-        'cost_price',
-        'selling_price',
-        'quantity',
         'reorder_threshold',
         'track_expiry',
     ];
@@ -37,9 +33,6 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'cost_price' => 'decimal:2',
-        'selling_price' => 'decimal:2',
-        'quantity' => 'decimal:2',
         'reorder_threshold' => 'decimal:2',
         'track_expiry' => 'boolean',
         'created_at' => 'datetime',
