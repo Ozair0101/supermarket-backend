@@ -90,8 +90,13 @@ class ReportController extends Controller
     {
         $lowStockThreshold = $request->query('low_stock_threshold', 10);
         
-        $products = Product::all();
-        $lowStockProducts = Product::where('quantity', '<=', $lowStockThreshold)->get();
+        // Instead of checking product quantity directly, we now check the sum of current_quantity
+        // from purchase items for each product
+        $products = Product::with(['purchaseItems'])->get();
+        $lowStockProducts = $products->filter(function ($product) use ($lowStockThreshold) {
+            $totalQuantity = $product->purchaseItems->sum('current_quantity');
+            return $totalQuantity <= $lowStockThreshold;
+        });
         
         $totalProducts = $products->count();
         $totalLowStockProducts = $lowStockProducts->count();
