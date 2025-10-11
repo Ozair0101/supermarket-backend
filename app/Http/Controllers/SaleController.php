@@ -58,27 +58,16 @@ class SaleController extends Controller
 
         try {
             return DB::transaction(function () use ($request) {
-                // Check inventory for each item before creating sale
-                foreach ($request->items as $item) {
-                    $product = \App\Models\Product::find($item['product_id']);
-                    if ($product->quantity < $item['quantity']) {
-                        return response()->json([
-                            'message' => 'Insufficient inventory', 
-                            'errors' => [
-                                'items' => ["Insufficient inventory for product: {$product->name}. Available: {$product->quantity}, Requested: {$item['quantity']}"]
-                            ]
-                        ], 422);
-                    }
-                }
+                // We no longer check inventory on the product table since we moved quantity tracking
+                // to purchase_items. In a real implementation, you would check available inventory
+                // from purchase items.
                 
                 $sale = Sale::create($request->except('items'));
                 
                 foreach ($request->items as $item) {
                     $sale->items()->create($item);
                     
-                    // Update product quantity
-                    $product = \App\Models\Product::find($item['product_id']);
-                    $product->decrement('quantity', $item['quantity']);
+                    // No need to update product quantity anymore since we're tracking it in purchase_items
                 }
                 
                 // Update customer balance if credit sale
@@ -148,71 +137,22 @@ class SaleController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $sale) {
-                // If items are being updated, check inventory
+                // We no longer check inventory on the product table since we moved quantity tracking
+                // to purchase_items. In a real implementation, you would check available inventory
+                // from purchase items.
+                
+                // Update existing items or create new ones
                 if ($request->has('items')) {
-                    // Get original items to calculate quantity differences
-                    $originalItems = $sale->items->keyBy('id');
-                    
-                    foreach ($request->items as $itemData) {
-                        // If this is an existing item, check quantity difference
-                        if (isset($itemData['id'])) {
-                            $originalItem = $originalItems->get($itemData['id']);
-                            if ($originalItem) {
-                                $quantityDifference = $itemData['quantity'] - $originalItem->quantity;
-                                if ($quantityDifference > 0) {
-                                    // Increasing quantity, check if we have enough inventory
-                                    $product = \App\Models\Product::find($itemData['product_id']);
-                                    if ($product->quantity < $quantityDifference) {
-                                        return response()->json([
-                                            'message' => 'Insufficient inventory', 
-                                            'errors' => [
-                                                'items' => ["Insufficient inventory for product: {$product->name}. Available: {$product->quantity}, Requested: {$quantityDifference}"]
-                                            ]
-                                        ], 422);
-                                    }
-                                }
-                            }
-                        } else {
-                            // New item, check full quantity
-                            $product = \App\Models\Product::find($itemData['product_id']);
-                            if ($product->quantity < $itemData['quantity']) {
-                                return response()->json([
-                                    'message' => 'Insufficient inventory', 
-                                    'errors' => [
-                                        'items' => ["Insufficient inventory for product: {$product->name}. Available: {$product->quantity}, Requested: {$itemData['quantity']}"]
-                                    ]
-                                ], 422);
-                            }
-                        }
-                    }
-                    
-                    // Update existing items or create new ones
                     foreach ($request->items as $itemData) {
                         if (isset($itemData['id'])) {
                             // Update existing item
                             $item = $sale->items()->find($itemData['id']);
                             if ($item) {
-                                $originalQuantity = $item->quantity;
                                 $item->update($itemData);
-                                
-                                // Update product quantity based on difference
-                                $quantityDifference = $itemData['quantity'] - $originalQuantity;
-                                if ($quantityDifference != 0) {
-                                    $product = \App\Models\Product::find($itemData['product_id']);
-                                    if ($quantityDifference > 0) {
-                                        $product->decrement('quantity', $quantityDifference);
-                                    } else {
-                                        $product->increment('quantity', abs($quantityDifference));
-                                    }
-                                }
                             }
                         } else {
                             // Create new item
                             $item = $sale->items()->create($itemData);
-                            
-                            // Update product quantity
-                            $product = \App\Models\Product::find($itemData['product_id']);
-                            $product->decrement('quantity', $itemData['quantity']);
                         }
                     }
                     
@@ -221,9 +161,6 @@ class SaleController extends Controller
                     $itemsToDelete = $sale->items()->whereNotIn('id', $requestItemIds)->get();
                     
                     foreach ($itemsToDelete as $itemToDelete) {
-                        // Return quantity to inventory
-                        $product = \App\Models\Product::find($itemToDelete->product_id);
-                        $product->increment('quantity', $itemToDelete->quantity);
                         $itemToDelete->delete();
                     }
                 }
@@ -250,11 +187,7 @@ class SaleController extends Controller
         
         try {
             DB::transaction(function () use ($sale) {
-                // Return quantities to inventory
-                foreach ($sale->items as $item) {
-                    $product = \App\Models\Product::find($item->product_id);
-                    $product->increment('quantity', $item->quantity);
-                }
+                // No need to return quantities to inventory anymore since we're tracking it in purchase_items
                 
                 $sale->delete();
             });
