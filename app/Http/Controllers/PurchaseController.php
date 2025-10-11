@@ -62,9 +62,7 @@ class PurchaseController extends Controller
                 foreach ($request->items as $item) {
                     $purchase->items()->create($item);
                     
-                    // Update product quantity
-                    $product = \App\Models\Product::find($item['product_id']);
-                    $product->increment('quantity', $item['quantity']);
+                    // No need to update product quantity anymore since we're tracking it in purchase_items
                 }
                 
                 // Update supplier balance
