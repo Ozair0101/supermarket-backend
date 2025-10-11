@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             CustomerSeeder::class,
             SupplierSeeder::class,
+            PurchaseSeeder::class, // Added the purchase seeder
+            PurchaseItemSeeder::class, // Added the purchase item seeder
         ]);
     }
 }
