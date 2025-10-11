@@ -30,10 +30,12 @@ class PurchaseItemController extends Controller
         $validator = Validator::make($request->all(), [
             'purchase_id' => 'required|exists:purchases,id',
             'product_id' => 'required|exists:products,id',
+            'barcode' => 'nullable|string|max:255',
             'batch_number' => 'nullable|string|max:255',
             'expiry_date' => 'nullable|date',
             'quantity' => 'required|numeric|min:0',
             'unit_cost' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0',
             'discount' => 'required|numeric|min:0',
             'line_total' => 'required|numeric|min:0',
         ]);
@@ -72,10 +74,12 @@ class PurchaseItemController extends Controller
         $validator = Validator::make($request->all(), [
             'purchase_id' => 'sometimes|required|exists:purchases,id',
             'product_id' => 'sometimes|required|exists:products,id',
+            'barcode' => 'nullable|string|max:255',
             'batch_number' => 'nullable|string|max:255',
             'expiry_date' => 'nullable|date',
             'quantity' => 'sometimes|required|numeric|min:0',
             'unit_cost' => 'sometimes|required|numeric|min:0',
+            'selling_price' => 'sometimes|required|numeric|min:0',
             'discount' => 'sometimes|required|numeric|min:0',
             'line_total' => 'sometimes|required|numeric|min:0',
         ]);
