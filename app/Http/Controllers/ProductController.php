@@ -42,11 +42,7 @@ class ProductController extends Controller
             'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products',
-            'barcode' => 'nullable|string|max:255|unique:products',
             'description' => 'nullable|string',
-            'cost_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
-            'quantity' => 'required|numeric|min:0',
             'reorder_threshold' => 'required|numeric|min:0',
             'track_expiry' => 'required|boolean',
         ]);
@@ -57,6 +53,8 @@ class ProductController extends Controller
 
         try {
             $product = Product::create($request->all());
+            // Load the category relationship for the response
+            $product->load('category');
             return response()->json(['message' => 'Product created successfully', 'data' => $product], 201);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to create product', 'error' => $e->getMessage()], 500);
@@ -90,11 +88,7 @@ class ProductController extends Controller
             'category_id' => 'nullable|exists:categories,id',
             'name' => 'sometimes|required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products,sku,' . $id,
-            'barcode' => 'nullable|string|max:255|unique:products,barcode,' . $id,
             'description' => 'nullable|string',
-            'cost_price' => 'sometimes|required|numeric|min:0',
-            'selling_price' => 'sometimes|required|numeric|min:0',
-            'quantity' => 'sometimes|required|numeric|min:0',
             'reorder_threshold' => 'sometimes|required|numeric|min:0',
             'track_expiry' => 'sometimes|required|boolean',
         ]);
@@ -105,6 +99,8 @@ class ProductController extends Controller
 
         try {
             $product->update($request->all());
+            // Load the category relationship for the response
+            $product->load('category');
             return response()->json(['message' => 'Product updated successfully', 'data' => $product]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to update product', 'error' => $e->getMessage()], 500);
