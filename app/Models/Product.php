@@ -79,4 +79,14 @@ class Product extends Model
     {
         return $this->hasMany(InventoryAdjustment::class);
     }
+
+    /**
+     * Calculate the total quantity in stock for this product.
+     *
+     * @return float
+     */
+    public function getTotalQuantityAttribute(): float
+    {
+        return $this->purchaseItems->sum('quantity') - $this->saleItems->sum('quantity');
+    }
 }
