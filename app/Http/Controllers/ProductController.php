@@ -15,7 +15,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category', 'purchaseItems');
+        $query = Product::with('category', 'purchaseItems', 'saleItems');
 
         // Filter by has_inventory if specified
         if ($request->has('has_inventory') && $request->has_inventory) {
@@ -27,6 +27,12 @@ class ProductController extends Controller
         }
 
         $products = $query->get();
+
+        // Add total quantity to each product
+        $products->each(function ($product) {
+            $product->total_quantity = $product->total_quantity;
+        });
+
         return response()->json($products);
     }
 
@@ -69,7 +75,8 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with('category', 'purchaseItems', 'saleItems')->findOrFail($id);
+        $product->total_quantity = $product->total_quantity;
         return response()->json($product);
     }
 
