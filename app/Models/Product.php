@@ -33,7 +33,7 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'reorder_threshold' => 'decimal:2',
+        'reorder_threshold' => 'integer',
         'track_expiry' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -83,10 +83,12 @@ class Product extends Model
     /**
      * Calculate the total quantity in stock for this product.
      *
-     * @return float
+     * @return int
      */
-    public function getTotalQuantityAttribute(): float
+    public function getTotalQuantityAttribute(): int
     {
-        return $this->purchaseItems->sum('quantity') - $this->saleItems->sum('quantity');
+        $purchased = $this->purchaseItems->sum('quantity');
+        $sold = $this->saleItems->sum('quantity');
+        return (int) ($purchased - $sold);
     }
 }
