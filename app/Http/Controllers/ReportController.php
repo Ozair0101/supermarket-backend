@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Sale;
 use App\Models\Purchase;
 use App\Models\Product;
+use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
@@ -141,6 +142,68 @@ class ReportController extends Controller
                 'total_low_stock_products' => $totalLowStockProducts,
             ],
             'chart_data' => $inventoryChartData
+        ]);
+    }
+
+    /**
+     * Generate dashboard data
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function dashboard()
+    {
+        // Get today's date
+        $today = date('Y-m-d');
+
+        // Get today's sales
+        $todaysSales = Sale::where('sale_date', $today)->get();
+        $todaysRevenue = $todaysSales->sum('total');
+        $todaysSalesCount = $todaysSales->count();
+
+        // Get total products
+        $totalProducts = Product::count();
+
+        // Get total customers
+        $totalCustomers = Customer::count();
+
+        // Get total revenue (all time)
+        $totalRevenue = Sale::sum('total');
+
+        // Get low stock products (using 5 as threshold)
+        $lowStockProducts = Product::with(['purchaseItems', 'saleItems'])
+            ->get()
+            ->filter(function ($product) {
+                return $product->total_quantity <= 5 && $product->total_quantity > 0;
+            })
+            ->values();
+
+        // Get out of stock products
+        $outOfStockProducts = Product::with(['purchaseItems', 'saleItems'])
+            ->get()
+            ->filter(function ($product) {
+                return $product->total_quantity <= 0;
+            })
+            ->values();
+
+        // Get recent sales (last 5)
+        $recentSales = Sale::with(['customer', 'items.product'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return response()->json([
+            'stats' => [
+                'total_products' => $totalProducts,
+                'sales_today' => $todaysRevenue,
+                'sales_count_today' => $todaysSalesCount,
+                'total_customers' => $totalCustomers,
+                'total_revenue' => $totalRevenue,
+            ],
+            'inventory_status' => [
+                'low_stock_products' => $lowStockProducts,
+                'out_of_stock_products' => $outOfStockProducts,
+            ],
+            'recent_sales' => $recentSales
         ]);
     }
 }
