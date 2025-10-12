@@ -15,7 +15,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with('category', 'purchaseItems');
 
         // Filter by has_inventory if specified
         if ($request->has('has_inventory') && $request->has_inventory) {
