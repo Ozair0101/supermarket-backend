@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('purchase_items', function (Blueprint $table) {
-            $table->string('barcode')->nullable()->after('product_id');
-            $table->decimal('selling_price', 10, 2)->default(0)->after('cost_price');
+            // Check if columns exist before adding them
+            if (!Schema::hasColumn('purchase_items', 'barcode')) {
+                $table->string('barcode')->nullable()->after('product_id');
+            }
+            
+            if (!Schema::hasColumn('purchase_items', 'selling_price')) {
+                $table->decimal('selling_price', 10, 2)->default(0)->after('unit_cost');
+            }
         });
     }
 
@@ -23,7 +29,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('purchase_items', function (Blueprint $table) {
-            $table->dropColumn(['barcode', 'cost_price', 'selling_price', 'current_quantity']);
+            if (Schema::hasColumn('purchase_items', 'barcode')) {
+                $table->dropColumn('barcode');
+            }
+            
+            if (Schema::hasColumn('purchase_items', 'selling_price')) {
+                $table->dropColumn('selling_price');
+            }
         });
     }
 };
