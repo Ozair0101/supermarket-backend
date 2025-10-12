@@ -34,7 +34,7 @@ class PurchaseItem extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'quantity' => 'decimal:2',
+        'quantity' => 'integer',
         'unit_cost' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'discount' => 'decimal:2',
