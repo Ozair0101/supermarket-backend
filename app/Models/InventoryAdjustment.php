@@ -31,9 +31,9 @@ class InventoryAdjustment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'quantity_before' => 'decimal:2',
-        'quantity_after' => 'decimal:2',
-        'change' => 'decimal:2',
+        'quantity_before' => 'integer',
+        'quantity_after' => 'integer',
+        'change' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
