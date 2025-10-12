@@ -36,9 +36,7 @@ class PurchaseItem extends Model
     protected $casts = [
         'quantity' => 'decimal:2',
         'unit_cost' => 'decimal:2',
-        'cost_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
-        'current_quantity' => 'decimal:2',
         'discount' => 'decimal:2',
         'line_total' => 'decimal:2',
         'expiry_date' => 'date',
