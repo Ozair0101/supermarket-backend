@@ -54,9 +54,7 @@ class PurchaseItemSeeder extends Seeder
                 'barcode' => '123456789013',
                 'quantity' => 200,
                 'unit_cost' => 0.30,
-                'cost_price' => 0.30,
                 'selling_price' => 0.50,
-                'current_quantity' => 200,
                 'discount' => 0,
                 'line_total' => 60.00
             ]);
@@ -71,9 +69,7 @@ class PurchaseItemSeeder extends Seeder
                 'barcode' => '123456789014',
                 'quantity' => 150,
                 'unit_cost' => 0.80,
-                'cost_price' => 0.80,
                 'selling_price' => 1.20,
-                'current_quantity' => 150,
                 'discount' => 0,
                 'line_total' => 120.00
             ]);
@@ -88,9 +84,7 @@ class PurchaseItemSeeder extends Seeder
                 'barcode' => '123456789015',
                 'quantity' => 50,
                 'unit_cost' => 1.00,
-                'cost_price' => 1.00,
                 'selling_price' => 1.50,
-                'current_quantity' => 50,
                 'discount' => 0,
                 'line_total' => 50.00
             ]);
@@ -105,9 +99,7 @@ class PurchaseItemSeeder extends Seeder
                 'barcode' => '123456789016',
                 'quantity' => 30,
                 'unit_cost' => 2.00,
-                'cost_price' => 2.00,
                 'selling_price' => 3.50,
-                'current_quantity' => 30,
                 'discount' => 0,
                 'line_total' => 60.00
             ]);
@@ -122,9 +114,7 @@ class PurchaseItemSeeder extends Seeder
                 'barcode' => '123456789017',
                 'quantity' => 200,
                 'unit_cost' => 0.50,
-                'cost_price' => 0.50,
                 'selling_price' => 1.00,
-                'current_quantity' => 200,
                 'discount' => 0,
                 'line_total' => 100.00
             ]);
