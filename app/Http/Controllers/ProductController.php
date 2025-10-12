@@ -16,7 +16,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with('category');
-        
+
         // Filter by has_inventory if specified
         if ($request->has('has_inventory') && $request->has_inventory) {
             // Instead of checking product quantity directly, we check if the product
@@ -25,7 +25,7 @@ class ProductController extends Controller
                 $subQuery->where('quantity', '>', 0);
             });
         }
-        
+
         $products = $query->get();
         return response()->json($products);
     }
@@ -116,7 +116,7 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        
+
         try {
             $product->delete();
             return response()->json(['message' => 'Product deleted successfully'], 200);
