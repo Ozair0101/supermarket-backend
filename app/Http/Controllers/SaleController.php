@@ -61,21 +61,21 @@ class SaleController extends Controller
                 // We no longer check inventory on the product table since we moved quantity tracking
                 // to purchase_items. In a real implementation, you would check available inventory
                 // from purchase items.
-                
+
                 $sale = Sale::create($request->except('items'));
-                
+
                 foreach ($request->items as $item) {
                     $sale->items()->create($item);
-                    
+
                     // No need to update product quantity anymore since we're tracking it in purchase_items
                 }
-                
+
                 // Update customer balance if credit sale
                 if ($request->customer_id && $request->status === 'credit') {
                     $customer = \App\Models\Customer::find($request->customer_id);
                     $customer->increment('remaining_balance', $request->remaining);
                 }
-                
+
                 return response()->json(['message' => 'Sale created successfully', 'data' => $sale->load(['customer', 'createdBy', 'items.product'])], 201);
             });
         } catch (\Exception $e) {
@@ -140,7 +140,7 @@ class SaleController extends Controller
                 // We no longer check inventory on the product table since we moved quantity tracking
                 // to purchase_items. In a real implementation, you would check available inventory
                 // from purchase items.
-                
+
                 // Update existing items or create new ones
                 if ($request->has('items')) {
                     foreach ($request->items as $itemData) {
@@ -155,24 +155,37 @@ class SaleController extends Controller
                             $item = $sale->items()->create($itemData);
                         }
                     }
-                    
+
                     // Delete items that are no longer in the request
                     $requestItemIds = collect($request->items)->pluck('id')->filter()->toArray();
                     $itemsToDelete = $sale->items()->whereNotIn('id', $requestItemIds)->get();
-                    
+
                     foreach ($itemsToDelete as $itemToDelete) {
                         $itemToDelete->delete();
                     }
                 }
-                
+
                 // Update sale details (excluding items)
                 $sale->update($request->except('items'));
-                
+
                 return response()->json(['message' => 'Sale updated successfully', 'data' => $sale->load(['customer', 'createdBy', 'items.product'])]);
             });
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to update sale', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Get payments for a specific sale.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function payments($id)
+    {
+        $sale = Sale::findOrFail($id);
+        $payments = $sale->payments;
+        return response()->json($payments);
     }
 
     /**
@@ -184,14 +197,14 @@ class SaleController extends Controller
     public function destroy($id)
     {
         $sale = Sale::findOrFail($id);
-        
+
         try {
             DB::transaction(function () use ($sale) {
                 // No need to return quantities to inventory anymore since we're tracking it in purchase_items
-                
+
                 $sale->delete();
             });
-            
+
             return response()->json(['message' => 'Sale deleted successfully'], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to delete sale', 'error' => $e->getMessage()], 500);
