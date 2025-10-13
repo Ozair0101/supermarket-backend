@@ -47,9 +47,11 @@ Route::prefix('v1')->group(function () {
 
         // Sale management
         Route::apiResource('sales', \App\Http\Controllers\SaleController::class);
+        Route::get('sales/{id}/payments', '\App\Http\Controllers\SaleController@payments');
 
         // Payment management
         Route::apiResource('payments', \App\Http\Controllers\PaymentController::class);
+        Route::get('purchases/{id}/payments', '\App\Http\Controllers\PurchaseController@payments');
 
         // Inventory adjustment
         Route::apiResource('inventory-adjustments', \App\Http\Controllers\InventoryAdjustmentController::class);
