@@ -58,17 +58,17 @@ class PurchaseController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 $purchase = Purchase::create($request->except('items'));
-                
+
                 foreach ($request->items as $item) {
                     $purchase->items()->create($item);
-                    
+
                     // No need to update product quantity anymore since we're tracking it in purchase_items
                 }
-                
+
                 // Update supplier balance
                 $supplier = \App\Models\Supplier::find($request->supplier_id);
                 $supplier->increment('remaining_balance', $request->remaining);
-                
+
                 return response()->json(['message' => 'Purchase created successfully', 'data' => $purchase->load(['supplier', 'createdBy', 'items.product'])], 201);
             });
         } catch (\Exception $e) {
@@ -127,6 +127,19 @@ class PurchaseController extends Controller
     }
 
     /**
+     * Get payments for a specific purchase.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function payments($id)
+    {
+        $purchase = Purchase::findOrFail($id);
+        $payments = $purchase->payments;
+        return response()->json($payments);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -135,7 +148,7 @@ class PurchaseController extends Controller
     public function destroy($id)
     {
         $purchase = Purchase::findOrFail($id);
-        
+
         try {
             $purchase->delete();
             return response()->json(['message' => 'Purchase deleted successfully'], 200);
